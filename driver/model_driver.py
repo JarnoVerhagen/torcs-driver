@@ -1,11 +1,15 @@
+#! /usr/bin/env python3
+
+from pytocl.main import main
 from pytocl.driver import Driver
 from pytocl.car import State, Command, MPS_PER_KMH
+
 import numpy as np
 import math
 import csv
 from keras.models import load_model
 
-class MyDriver(Driver):
+class ModelDriver(Driver):
     # Override the `drive` method to create your own driver
     
     MODEL = load_model('/home/oem/CI/model.h5')
@@ -26,7 +30,7 @@ class MyDriver(Driver):
         #data = np.array(track).reshape((1, 19))   
         
 
-        predictions = MyDriver.MODEL.predict(data)
+        predictions = ModelDriver.MODEL.predict(data)
 
         command.accelerator = predictions[0,0]
         #command.brake = predictions[0,1]
@@ -87,3 +91,6 @@ class MyDriver(Driver):
             steering_error,
             carstate.current_lap_time
         )
+
+if __name__ == '__main__':
+    main(ModelDriver(logdata=False))

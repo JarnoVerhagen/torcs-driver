@@ -1,3 +1,6 @@
+#! /usr/bin/env python3
+
+from pytocl.main import main
 from pytocl.driver import Driver
 from pytocl.car import State, Command
 import keyboard
@@ -22,16 +25,15 @@ class ManualDriver(Driver):
 
         # Steering
         inverseSpeed = carstate.speed_x**-1 # Used to compensate for speed
-        minSteering = 0.5*inverseSpeed # Minimum steering speed
-        deltaSteering = 0.05*inverseSpeed # Change in steering speed while holding
+        deltaSteering = 0.66*inverseSpeed # Minimum steering speed
         if keyboard.is_pressed('a'):
             # Steer left
             self.steering = self.steering + deltaSteering
-            self.steering = max([self.steering, minSteering])
+            self.steering = max([self.steering, deltaSteering])
         elif keyboard.is_pressed('d'):
             # Steer right
             self.steering = self.steering - deltaSteering
-            self.steering = min([self.steering, -minSteering])
+            self.steering = min([self.steering, -deltaSteering])
         else:
             # Stop all steering
             self.steering = 0
@@ -40,8 +42,12 @@ class ManualDriver(Driver):
         gear = max([carstate.gear, 1]) # At least in gear 1
         if self.accelerator > 0 and carstate.rpm > 8000 and gear < 6:
             gear = gear + 1
-        if carstate.rpm < 2500 and gear > 1:
+            print('up',gear)
+        if carstate.rpm < 2000 and gear > 1:
             gear = gear - 1
+            print('down',gear)
+        if keyboard.is_pressed('shift'):
+            gear = -1
         
         # Create command
         command = Command()
@@ -56,4 +62,6 @@ class ManualDriver(Driver):
             self.data_logger.log(carstate, command)
 
         return command
-         
+
+if __name__ == '__main__':
+    main(ManualDriver(logdata=False))
