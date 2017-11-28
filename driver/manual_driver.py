@@ -34,7 +34,7 @@ class ManualDriver(Driver):
             self.brake = 0
 
         # Steering
-        inverseSpeed = carstate.speed_x**-1 # Used to compensate for speed
+        inverseSpeed = (carstate.speed_x+0.00001)**-1 # Used to compensate for speed
         deltaSteering = 0.66*inverseSpeed # Minimum steering speed
         if keyboard.is_pressed('a'):
             # Steer left
@@ -52,7 +52,7 @@ class ManualDriver(Driver):
         gear = max([carstate.gear, 1]) # At least in gear 1
         if self.accelerator > 0 and carstate.rpm > 8000 and gear < 6:
             gear = gear + 1
-        if carstate.rpm < 3000 and gear > 1:
+        if carstate.rpm < 5000 and gear > 1:
             gear = gear - 1
         if keyboard.is_pressed('shift'):
             gear = -1
@@ -65,7 +65,7 @@ class ManualDriver(Driver):
         command.steering = self.steering
         command.focus = 0.0
 
-        self.csvWriter.writerow([command.accelerator, command.brake, command.steering, carstate.gear, carstate.speed_x, carstate.speed_y, carstate.speed_z, carstate.distance_from_center, carstate.angle, carstate.rpm, carstate.gear] + list(carstate.distances_from_edge))
+        self.csvWriter.writerow([command.accelerator, command.brake, command.steering, command.gear, carstate.speed_x, carstate.speed_y, carstate.speed_z, carstate.distance_from_center, carstate.angle, carstate.rpm, carstate.gear] + list(carstate.distances_from_edge))
         return command
 
 if __name__ == '__main__':
