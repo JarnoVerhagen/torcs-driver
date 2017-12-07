@@ -10,7 +10,7 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 class ModelDriver(Driver):
-    MODEL = tf.keras.models.load_model('../model/model.h5')
+    MODEL = tf.keras.models.load_model('../model/model-mutated.h5')
     FEATURES = 14
 
     def drive(self, carstate: State) -> Command:
@@ -19,7 +19,6 @@ class ModelDriver(Driver):
             [carstate.speed_x, carstate.distance_from_center, carstate.angle,
              carstate.gear], list(carstate.distances_from_edge[::2])).reshape((1, ModelDriver.FEATURES))
         predictions = ModelDriver.MODEL.predict(data)
-        print(predictions)
         # Create command based on predictions
         command = Command()
         command.accelerator = predictions[0, 0]
