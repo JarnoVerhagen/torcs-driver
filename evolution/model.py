@@ -18,9 +18,9 @@ class Model:
         np.random.seed(7)
         model = Sequential()
 
-        model.add(Dense(self.n_features, activation='linear', input_dim=self.n_features)) # Input layer
-        model.add(Dense(10, activation='sigmoid')) # Hidden layers
-        model.add(Dense(self.n_labels, activation='linear')) # Output layer
+        model.add(Dense(self.n_features, activation='linear', input_dim=self.n_features, bias_initializer='uniform')) # Input layer
+        model.add(Dense(10, activation='sigmoid', kernel_initializer='uniform')) # Hidden layers
+        model.add(Dense(self.n_labels, activation='linear', kernel_initializer='uniform')) # Output layer
 
         model.compile(loss='mean_squared_error', optimizer=adam(lr=self.lr))
 
