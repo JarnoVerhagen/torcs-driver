@@ -8,11 +8,11 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 class Model:
     # Parameters
-    n_features = 14
+    n_features = 20
     n_labels = 4
     batch_size = 128
     lr = 0.0005
-    epochs = 50
+    epochs = 150
 
     def __init__(self):
         np.random.seed(7)
@@ -35,6 +35,10 @@ class Model:
         input = data[:, 4:]
         # Remove 1: speed_y, 2: speed_z and 5: rpm, others: odd edge distances
         input = np.delete(input, [1, 2, 5, 8, 10, 12, 14, 16, 18, 20, 22, 24], axis=1)
+        # Add 6 distances to opponents, initially at max vallue 200
+        opponents = np.full((len(input), 6), 200)
+        input = np.append(input, opponents, 1)
+
         return input, output
 
     def train(self, path):
@@ -48,3 +52,6 @@ class Model:
 
     def save(self, path):
         self.model.save(filepath=path)
+
+model = Model()
+model.read('data/drivelog-2017-11-30-23-58-30.csv')

@@ -10,10 +10,18 @@ class Driver():
         self.n_features = n_features
 
     def drive(self, carstate: State) -> Command:
+        back_opponent = np.average(np.append(carstate.opponents[0:2], carstate.opponents[35]))
+        left_opponent = np.average(carstate.opponents[8:11])
+        front_left_opponent = np.average(carstate.opponents[15:18])
+        front_opponent = np.average(carstate.opponents[17:20])
+        front_right_opponent = np.average(carstate.opponents[19:22])
+        right_opponent = np.average(carstate.opponents[26:29])
+        opponent_distances = np.array([back_opponent, left_opponent, front_left_opponent, front_opponent, front_right_opponent, right_opponent])
         # Feed carstate to model
         data = np.append(
-            [carstate.speed_x, carstate.distance_from_center, carstate.angle,
-             carstate.gear], list(carstate.distances_from_edge[::2])).reshape((1, self.n_features))
+            [carstate.speed_x, carstate.distance_from_center, carstate.angle, carstate.gear],
+            list(carstate.distances_from_edge[::2]))
+        data = np.append(data, opponent_distances).reshape((1, 20))
         predictions = self.model.predict(data)
 
         # Create command based on predictions
