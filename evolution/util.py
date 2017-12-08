@@ -6,6 +6,7 @@ from xml.dom import minidom
 import tensorflow as tf
 import os
 import threading
+import subprocess
 
 def create_initial_model():
     model = Model()
@@ -29,7 +30,7 @@ def create_initial_generation():
     tf.keras.models.save_model(model, folder + 'init')
 
     mean = 0
-    std = 0.01
+    std = 0.005
     print("Starting generation of generation 0")
     threads = []
     for i in range(49):
@@ -43,14 +44,15 @@ def create_initial_generation():
 
 def drive_model(path):
     model = tf.keras.models.load_model(path)
-    features = 14
-    driver = Driver(model, features)
+    driver = Driver(model)
     main(driver)
 
 def grade_model(path):
     config_path = os.path.abspath(".") + "/evo_race.xml"
-    os.system(" ".join(['torcs', '-r', config_path, '&'])) # The '&' puts it in the background
-    drive_model(path)
+    torcs = subprocess.Popen(['torcs', '-r', config_path])
+    driver = subprocess.Popen(['/home/jarno/miniconda3/envs/torcs/bin/python', '-c', 'import util; util.drive_model(\'' + path + '\')'])
+    torcs.wait()
+    driver.kill()
 
     return get_last_result()
 
@@ -85,20 +87,23 @@ def get_last_result():
                 elif name == "dammages":
                     damage = attnum.getAttribute('val')
 
-
     return time, top_speed, damage
 
 def test_generation(generation):
     path = "models/gen" + str(generation) + "/"
     files = os.listdir(path)
-    results = open(path+"results", 'w')
-    results.write("Model,Time,Top speed,Damage\n")
+    files.sort()
+    with open(path+"results", 'w') as results:
+        results.write("Model,Time,Top speed,Damage\n")
 
-    for file in files:
-        if file != 'results':
-            model_path = path + file
-            print("Start testing model", file)
-            time, top_speed, damage = grade_model(model_path)
-            results.write(",".join([file,time,top_speed,damage])+"\n")
+        for file in files:
+            if file != 'results':
+                model_path = path + file
+                print("Start testing model", file)
+                time, top_speed, damage = grade_model(model_path)
+                results.write(",".join([file,time,top_speed,damage])+"\n")
+                print("Finished testing model", file, time, top_speed, damage)
 
-test_generation(0)
+if __name__ == '__main__':
+    # grade_model('models/gen0/g0m10')
+    test_generation(0)

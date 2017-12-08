@@ -5,9 +5,8 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 class Driver():
-    def __init__(self, model, n_features):
+    def __init__(self, model):
         self.model = model
-        self.n_features = n_features
 
     def drive(self, carstate: State) -> Command:
         back_opponent = np.average(np.append(carstate.opponents[0:2], carstate.opponents[35]))

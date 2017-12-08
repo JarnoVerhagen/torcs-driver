@@ -39,9 +39,3 @@ def main(driver):
     # start client loop:
     client = Client(driver=driver, **args.__dict__)
     client.run()
-
-
-if __name__ == '__main__':
-    from driver import Driver
-
-    main(Driver())
