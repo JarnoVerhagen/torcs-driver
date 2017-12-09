@@ -34,7 +34,7 @@ def create_initial_generation():
     tf.keras.models.save_model(model, folder + 'init')
 
     mean = 0
-    std = 0.005
+    std = 0.03
     print("Starting generation of generation 0")
     threads = []
     for i in range(49):
@@ -78,7 +78,7 @@ def create_next_generation(parent_generation):
         copyfile(parent_folder + parent, child_folder + parent)
 
     mean = 0
-    std = 0.005
+    std = 0.03
     # Pick parents which get a child through mutation
     parents_to_mutate = np.random.choice(results,35,p=probabilities,replace=True)
     threads = []
@@ -138,15 +138,29 @@ def get_last_result():
 
     return time, top_speed, damage
 
-def test_generation(generation):
+def test_generation(generation, use_old_results):
     path = "models/gen" + str(generation) + "/"
+
+    # Create dictionary of results of previous generation so they do not need to be simulated again
+    previous_results_dict = {}
+    if generation > 0 and use_old_results:
+        previous_results_file = open("models/gen" + str(generation-1) + "/results", 'rt')
+        previous_results = list(csv.reader(previous_results_file, delimiter=",", quoting=csv.QUOTE_NONE))
+        for result in previous_results[1:]:
+            previous_results_dict[result[0]] = result
+
     files = os.listdir(path)
     files.sort()
     with open(path+"results", 'w') as results:
         results.write("Model,Time,Top speed,Damage\n")
 
         for file in files:
-            if file != 'results':
+            # First check if the model comes from the previous generation and if so, copy results
+            if file in previous_results_dict:
+                print("Gettin+g results for model", file, "from previous generation")
+                results.write(",".join(previous_results_dict[file])+"\n")
+            # Otherwise test model
+            elif file != 'results':
                 model_path = path + file
                 print("Start testing model", file)
                 time, top_speed, damage = grade_model(model_path)
@@ -154,5 +168,10 @@ def test_generation(generation):
                 print("Finished testing model", file, time, top_speed, damage)
 
 if __name__ == '__main__':
-    # grade_model('models/gen0/g0m10')
-    create_next_generation(0)
+    create_initial_generation()
+    i = 0
+    while(True):
+        use_old_results = i%4 != 0 # Retest all models every 4 generations, to prevent a lucky instance
+        test_generation(i, use_old_results)
+        create_next_generation(i)
+        i += 1
