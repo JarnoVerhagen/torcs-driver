@@ -96,18 +96,18 @@ def drive_model(path):
     driver = Driver(model)
     main(driver)
 
-def grade_model(path):
-    config_path = os.path.abspath(".") + "/evo_race.xml"
+def grade_model(path, config_path):
     torcs = subprocess.Popen(['torcs', '-r', config_path])
     driver = subprocess.Popen(['/home/jarno/miniconda3/envs/torcs/bin/python', '-c', 'import util; util.drive_model(\'' + path + '\')'])
     torcs.wait()
     driver.kill()
 
-    return get_last_result()
+    config = config_path.split("/")[-1].replace(".xml","")
+    return get_last_result(config)
 
-def get_last_result():
+def get_last_result(config):
     # Locate xml file with results and parse
-    results_folder = os.environ['HOME'] + "/.torcs/results/evo_race"
+    results_folder = os.environ['HOME'] + "/.torcs/results/" + config
     result_files = os.listdir(results_folder)
     result_files.sort()
     last_file = result_files[-1]
@@ -163,7 +163,9 @@ def test_generation(generation, use_old_results):
             elif file != 'results':
                 model_path = path + file
                 print("Start testing model", file)
-                time, top_speed, damage = grade_model(model_path)
+                config_path = os.path.abspath(".") + "/evo_race_" + str(generation%2) + ".xml"
+                print(config_path)
+                time, top_speed, damage = grade_model(model_path, config_path)
                 results.write(",".join([file,time,top_speed,damage])+"\n")
                 print("Finished testing model", file, time, top_speed, damage)
 
@@ -171,7 +173,6 @@ if __name__ == '__main__':
     create_initial_generation()
     i = 0
     while(True):
-        use_old_results = i%4 != 0 # Retest all models every 4 generations, to prevent a lucky instance
-        test_generation(i, use_old_results)
+        test_generation(i, False)
         create_next_generation(i)
         i += 1
